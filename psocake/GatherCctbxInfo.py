@@ -2,29 +2,38 @@ import os
 import cPickle as pickle
 
 
-class GatherCctbxInformation(object):
+class Cctbx(object):
 
     def __init__(self, mask = None, integratedPickles = None, indexedPickles = None,
-    cbfImages = None):
+    cbfImages = None, expDir = None):
 
         self.mask = mask
         self.integratedPickles = []
         self.indexedPickles = []
         self.cbfImages = []
 
-    def FindMask(self, maskDir, maskName):
+    def SetExpDir(self, instrument, expName, **kwargs):
 
-        self.maskDir = maskDir
+        lowerInst = instrument.lower()
+        lowerExpName = expName.lower()
+
+        extraPath = kwargs.get('extraPath', '')
+
+        self.expDir = '/reg/d/psdm/' + lowerInst + '/' + lowerExpName + '/' + extraPath
+
+    def FindMask(self, maskName):
+
         self.maskName = maskName
+        expDir = self.expDir
 
-        for file in os.listdir(maskDir):
+        for file in os.listdir(expDir):
             if maskName in file and file.endswith(".pickle"):
                 self.mask = file
 
-    def SearchIndexImageIntegrate(self, expDir, topDown=True):
-       
-        self.expDir = expDir
-         
+    def SearchIndexImageIntegrate(self, topDown=True):
+
+        expDir = self.expDir
+
         for dirPath, subDirs, files in os.walk(expDir):
             for file in files:
                 if file.endswith(".pickle") and "indexed" in file:
@@ -36,9 +45,9 @@ class GatherCctbxInformation(object):
                 elif file.endswith(".cbf"):
                     self.cbfImages.append(os.path.join(dirPath,file))
 
-    def FindIndexedSpots(self, indexedPickles):
+    def FindIndexedSpots(self):
 
-        self.indexedPickles = indexedPickles
+        indexedPickles = self.indexedPickles
 
 
         #For more specific run # and event #. Can be replaced with current set-up
